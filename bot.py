@@ -145,6 +145,31 @@ async def on_message(message: discord.Message):
     await bot.process_commands(message)
 
 
+@bot.command(name="attendance")
+@commands.has_permissions(administrator=True)
+async def attendance_today(ctx: commands.Context):
+    """Admin: show today's attendance summary."""
+    today = date.today().strftime("%d/%m/%Y")
+    guild = ctx.guild
+    if not guild:
+        await ctx.send("Guild not found.")
+        return
+    humans = [m for m in guild.members if not m.bot]
+    present = []
+    absent = []
+    for m in humans:
+        if (str(m.id), today) in _present_today:
+            present.append(m.display_name)
+        else:
+            absent.append(m.display_name)
+    msg = (
+        f"**Attendance for {today}**\n"
+        f"**Present ({len(present)}):** {', '.join(present) or 'None'}\n"
+        f"**Not seen yet ({len(absent)}):** {', '.join(absent) or 'None'}"
+    )
+    await ctx.send(msg)
+
+
 async def post_daily_summary():
     if not SUMMARY_CHANNEL_ID:
         return
